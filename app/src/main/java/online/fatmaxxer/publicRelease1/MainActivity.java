@@ -257,10 +257,14 @@ public class MainActivity extends AppCompatActivity {
             //Log.d(TAG, "FatMaxxer service onCreate");
             super.onCreate();
             createNotificationChannel();
+            try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 startMyOwnForeground();
             else
                 startForeground(1, new Notification());
+        } catch (Exception e) {
+            android.util.Log.w("LocalService", "startForeground failed: " + e.getMessage());
+        }
         }
 
         private void startMyOwnForeground() {
@@ -462,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 if (t.apply(x[i])) return true;
             } catch (Throwable throwable) {
-                text_view.setText("Exception " + throwable.toString());
+                if (text_view != null) text_view.setText("Exception " + throwable.toString());
                 logException("v_contains ", throwable);
             }
         }
@@ -733,7 +737,7 @@ public class MainActivity extends AppCompatActivity {
         if (detrendingFactorMatrices.get(lambda)[T] != null) {
             //String msg = "Pre-cached matrix lambda "+lambda+" length "+T;
             //Log.d(TAG,msg);
-            //text_view.setText(msg);
+            //if (text_view != null) text_view.setText(msg);
             return detrendingFactorMatrices.get(lambda)[T];
         }
         a1v2cacheMisses++;
@@ -741,7 +745,7 @@ public class MainActivity extends AppCompatActivity {
         //String msg = "Computing matrix lambda "+lambda+" length "+T;
         long startTime = System.currentTimeMillis();
         //Log.d(TAG,msg);
-        //text_view.setText(msg);
+        //if (text_view != null) text_view.setText(msg);
         SimpleMatrix I = SimpleMatrix.identity(T);
         SimpleMatrix D2 = new SimpleMatrix(T - 2, T);
         for (int i = 0; i < D2.numRows(); i++) {
@@ -812,7 +816,7 @@ public class MainActivity extends AppCompatActivity {
         // HACK - we know what scales are needed for now
         scales = exp_scales;
         if (scales != exp_scales) {
-            text_view.setText("IllegalStateException: wrong scales");
+            if (text_view != null) text_view.setText("IllegalStateException: wrong scales");
             throw new IllegalStateException("wrong scales");
         }
         // fluct = np.zeros(len(scales))
@@ -840,7 +844,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void testDFA_alpha1() {
-        text_view.setText("Self-test DFA alpha1");
+        if (text_view != null) if (text_view != null) text_view.setText("Self-test DFA alpha1");
         Log.d(TAG, "testDFA_alpha1");
         double[] values = {635.0, 628.0, 627.0, 625.0, 624.0, 627.0, 624.0, 623.0, 633.0, 636.0, 633.0, 628.0, 625.0, 628.0, 622.0, 621.0, 613.0, 608.0, 604.0, 612.0, 620.0, 616.0, 611.0, 616.0, 614.0, 622.0, 627.0, 625.0, 622.0, 617.0, 620.0, 622.0, 623.0, 615.0, 614.0, 627.0, 630.0, 632.0, 632.0, 632.0, 631.0, 627.0, 629.0, 634.0, 628.0, 625.0, 629.0, 633.0, 632.0, 628.0, 631.0, 631.0, 628.0, 623.0, 619.0, 618.0, 618.0, 628.0, 634.0, 631.0, 626.0, 633.0, 637.0, 636.0, 632.0, 634.0, 625.0, 614.0, 610.0, 607.0, 613.0, 616.0, 622.0, 625.0, 620.0, 633.0, 640.0, 639.0, 631.0, 626.0, 634.0, 628.0, 615.0, 610.0, 607.0, 611.0, 613.0, 614.0, 611.0, 608.0, 627.0, 625.0, 619.0, 618.0, 622.0, 625.0, 626.0, 625.0, 626.0, 624.0, 631.0, 631.0, 619.0, 611.0, 608.0, 607.0, 602.0, 586.0, 583.0, 576.0, 580.0, 571.0, 583.0, 591.0, 598.0, 607.0, 607.0, 621.0, 619.0, 622.0, 613.0, 604.0, 607.0, 603.0, 604.0, 598.0, 595.0, 592.0, 589.0, 594.0, 594.0, 602.0, 611.0, 614.0, 634.0, 635.0, 636.0, 628.0, 627.0, 628.0, 626.0, 619.0, 616.0, 616.0, 622.0, 615.0, 607.0, 611.0, 610.0, 619.0, 624.0, 625.0, 626.0, 633.0, 643.0, 647.0, 644.0, 644.0, 642.0, 645.0, 637.0, 628.0, 632.0, 633.0, 625.0, 626.0, 623.0, 620.0, 620.0, 610.0, 612.0, 612.0, 610.0, 614.0, 611.0, 609.0, 616.0, 624.0, 623.0, 618.0, 622.0, 623.0, 625.0, 629.0, 621.0, 622.0, 617.0, 619.0, 618.0, 610.0, 607.0, 606.0, 611.0};
         // Altini Python code
@@ -851,11 +855,11 @@ public class MainActivity extends AppCompatActivity {
         double act_result = dfaAlpha1V1(values, 2, 4, 30, false);
         if (Double.compare(exp_result, act_result) != 0) {
             String msg = "expected " + exp_result + " got " + act_result;
-            text_view.setText("Self-test DFA alpha1 failed: " + msg);
+            if (text_view != null) if (text_view != null) text_view.setText("Self-test DFA alpha1 failed: " + msg);
             Log.d(TAG, "***** testDFA_alpha1 failed " + msg + " *****");
             throw new IllegalStateException("test failed, expected " + exp_result + " got " + act_result);
         } else {
-            text_view.setText("Self-test DFA alpha1 passed");
+            if (text_view != null) if (text_view != null) text_view.setText("Self-test DFA alpha1 passed");
             Log.d(TAG, "Self-test DFA alpha1 passed");
         }
     }
@@ -1808,8 +1812,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "start result " + serviceComponentName);
 
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayShowHomeEnabled(true);
-        actionBar.setIcon(R.mipmap.ic_launcher_foreground);
+        if (actionBar == null) { android.util.Log.w("MainActivity", "No ActionBar - skipping"); }
+        if (actionBar != null) actionBar.setDisplayShowHomeEnabled(true);
+        if (actionBar != null) actionBar.setIcon(R.mipmap.ic_launcher_foreground);
 
         //setContentView(R.layout.activity_fragment_container);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -1906,7 +1911,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void blePowerStateChanged(boolean powered) {
                 Log.d(TAG, "BLE power: " + powered);
-                text_view.setText("BLE power " + powered);
+                if (text_view != null) text_view.setText("BLE power " + powered);
             }
 
             @Override
@@ -1921,13 +1926,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void deviceConnecting(@NonNull PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG, "Polar device CONNECTING"+": " + polarDeviceInfo.getDeviceId());
-                text_view.setText(getString(R.string.ConnectingToHeartRateSensor)+" " + polarDeviceInfo.getDeviceId());
+                if (text_view != null) text_view.setText(getString(R.string.ConnectingToHeartRateSensor)+" " + polarDeviceInfo.getDeviceId());
             }
 
             @Override
             public void deviceDisconnected(@NonNull PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG, "DISCONNECTED: " + polarDeviceInfo.getDeviceId());
-                text_view.setText(getString(R.string.DisconnectedFromHeartRateSensor)+" " + polarDeviceInfo.getDeviceId());
+                if (text_view != null) text_view.setText(getString(R.string.DisconnectedFromHeartRateSensor)+" " + polarDeviceInfo.getDeviceId());
                 ecgDisposable = null;
 //                accDisposable = null;
 //                gyrDisposable = null;
@@ -1942,14 +1947,14 @@ public class MainActivity extends AppCompatActivity {
                                                @NonNull final PolarBleApi.PolarBleSdkFeature feature) {
                 if (true) { // single feature now
                     Log.d(TAG, "Streaming feature " + feature.toString() + " is ready");
-                    text_view.setText("Streaming feature " + feature.toString() + " is ready");
+                    if (text_view != null) text_view.setText("Streaming feature " + feature.toString() + " is ready");
                 }
             }
 
             @Override
             public void hrFeatureReady(@NonNull String identifier) {
                 Log.d(TAG, "HR READY: " + identifier);
-                text_view.setText("HR feature " + identifier + " is ready");
+                if (text_view != null) text_view.setText("HR feature " + identifier + " is ready");
                 // hr notifications are about to start
             }
 
@@ -2485,7 +2490,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 text_artifacts.setBackgroundResource(R.color.colorBackground);
             }
-            text_view.setText(logstring);
+            if (text_view != null) text_view.setText(logstring);
             text_hr.setText("" + data.getSamples().get(0).getHr());
             text_secondary_label.setText(R.string.RootMeanSquareSuccessiveDifferencesAbbreviation);
             text_secondary.setText("" + round(rmssdWindowed));
@@ -2636,12 +2641,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG,"tryPolarConnect to "+tmpDeviceID);
         try {
             String text = getString(R.string.TryingToConnectToHeartRateSensor)+": " + tmpDeviceID;
-            //text_view.setText(text);
+            //if (text_view != null) text_view.setText(text);
             Toast.makeText(this, text, Toast.LENGTH_LONG).show();
             api.connectToDevice(tmpDeviceID);
         } catch (PolarInvalidArgument polarInvalidArgument) {
             String msg = "PolarInvalidArgument: " + polarInvalidArgument;
-            text_view.setText(msg);
+            if (text_view != null) text_view.setText(msg);
             logException("tryPolarConnect Exception", polarInvalidArgument);
         }
     }
@@ -2657,7 +2662,7 @@ public class MainActivity extends AppCompatActivity {
         if (tmpDeviceID.length()>0) {
             tryPolarConnect(tmpDeviceID);
         } else {
-            text_view.setText("No device ID set");
+            if (text_view != null) if (text_view != null) text_view.setText("No device ID set");
         }
     }
 
@@ -2674,7 +2679,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             // avoid infinite loop through the local Log mechanism!
             android.util.Log.d(TAG,"IOException writing to "+tag+" log "+getStackTraceString(e));
-            text_view.setText("IOException writing to "+tag+" log");
+            if (text_view != null) text_view.setText("IOException writing to "+tag+" log");
         }
     }
 
@@ -2815,7 +2820,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-            text_view.setText("Permission update: "+requestCode);
+            if (text_view != null) text_view.setText("Permission update: "+requestCode);
             if (requestCode == 1) {
                 Log.d(TAG, "bt ready");
             }
@@ -2823,14 +2828,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-            text_view.setText("Paused");
+            if (text_view != null) text_view.setText("Paused");
             super.onPause();
             // // api.backgroundEntered(); // removed in SDK 5.x // removed in SDK 5.x
     }
 
     @Override
     public void onResume() {
-            text_view.setText("Resumed");
+            if (text_view != null) text_view.setText("Resumed");
             super.onResume();
             // // api.foregroundEntered(); // removed in SDK 5.x // removed in SDK 5.x
     }
@@ -2866,7 +2871,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
-            text_view.setText("Destroyed");
+            if (text_view != null) text_view.setText("Destroyed");
             Toast.makeText(this, R.string.FatMaxxerAppClosed, Toast.LENGTH_SHORT).show();
             super.onDestroy();
             Intent i = new Intent(MainActivity.this, LocalService.class);
