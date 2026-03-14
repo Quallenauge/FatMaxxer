@@ -134,7 +134,7 @@ public class BLEEmulator extends Service {
                     new Notification.Builder(this, CHANNEL_DEFAULT_IMPORTANCE)
                             .setContentTitle(getText(R.string.app_name)+".BLESensorEmulatorService")
                             .setContentText("Active")
-                            .setSmallIcon(R.drawable.ic_launcher_background)
+                            .setSmallIcon(R.mipmap.ic_launcher)
                             .setAutoCancel(true)
                             .setContentIntent(notifyPendingIntent)
                             .setTicker(getText(R.string.app_name))
@@ -144,7 +144,7 @@ public class BLEEmulator extends Service {
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_DEFAULT_IMPORTANCE)
                     .setContentTitle(getString(R.string.app_name)+".BLESensorEmulatorService")
                     .setContentText("Active")
-                    .setSmallIcon(R.drawable.ic_launcher_background)
+                    .setSmallIcon(R.mipmap.ic_launcher)
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setAutoCancel(true)
                     .build();

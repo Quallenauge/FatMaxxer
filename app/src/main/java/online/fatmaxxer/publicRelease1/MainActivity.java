@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, SERVICE_CHANNEL_ID);
             Notification notification =
                     notificationBuilder.setOngoing(true)
-                            .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                            .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("FatMaxxer started")
                             .setPriority(NotificationManager.IMPORTANCE_HIGH)
                             .setCategory(Notification.CATEGORY_SERVICE)
@@ -1814,7 +1814,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar == null) { android.util.Log.w("MainActivity", "No ActionBar - skipping"); }
         if (actionBar != null) actionBar.setDisplayShowHomeEnabled(true);
-        if (actionBar != null) actionBar.setIcon(R.mipmap.ic_launcher_foreground);
+        if (actionBar != null) actionBar.setIcon(R.mipmap.ic_launcher);
 
         //setContentView(R.layout.activity_fragment_container);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -2462,7 +2462,7 @@ public class MainActivity extends AppCompatActivity {
 
                     uiNotificationBuilder = new NotificationCompat.Builder(this, UI_CHANNEL_ID)
                             .setOngoing(true)
-                            .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                            .setSmallIcon(R.mipmap.ic_launcher)
                             .setPriority(NotificationManager.IMPORTANCE_HIGH)
                             .setCategory(Notification.CATEGORY_MESSAGE)
                             .setContentIntent(pendingIntent)
