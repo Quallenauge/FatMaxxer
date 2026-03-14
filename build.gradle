@@ -1,27 +1,10 @@
-// ============================================================
-// Root build.gradle — FatMaxxer (fearby fork)
-// Updated: AGP 8.4, Kotlin 2.0, Google Maven repo
-// ============================================================
-
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        // Android Gradle Plugin — was likely 7.x or older
         classpath 'com.android.tools.build:gradle:8.4.0'
-        // Kotlin — adds Kotlin support for future migration
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0'
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        // JitPack needed for MPAndroidChart
-        maven { url 'https://jitpack.io' }
     }
 }
 
