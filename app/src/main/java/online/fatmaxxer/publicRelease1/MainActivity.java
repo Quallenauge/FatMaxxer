@@ -49,7 +49,7 @@ import androidx.preference.PreferenceManager;
 
 import org.ejml.simple.SimpleMatrix;
 import org.jetbrains.annotations.NotNull;
-import org.reactivestreams.Publisher;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -76,19 +76,22 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import online.fatmaxxer.publicRelease1.databinding.ActivityMainBinding;
+import online.fatmaxxer.fatmaxxer.databinding.ActivityMainBinding;
+import online.fatmaxxer.fatmaxxer.R;
+import online.fatmaxxer.fatmaxxer.BuildConfig;
+import org.reactivestreams.Publisher;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Function;
-import polar.com.sdk.api.PolarBleApi;
-import polar.com.sdk.api.PolarBleApiCallback;
-import polar.com.sdk.api.PolarBleApiDefaultImpl;
-import polar.com.sdk.api.errors.PolarInvalidArgument;
-import polar.com.sdk.api.model.PolarDeviceInfo;
-import polar.com.sdk.api.model.PolarEcgData;
-import polar.com.sdk.api.model.PolarHrData;
-import polar.com.sdk.api.model.PolarSensorSetting;
+import com.polar.sdk.api.PolarBleApi;
+import com.polar.sdk.api.PolarBleApiCallback;
+import com.polar.sdk.api.PolarBleApiDefaultImpl;
+import com.polar.sdk.api.errors.PolarInvalidArgument;
+import com.polar.sdk.api.model.PolarDeviceInfo;
+import com.polar.sdk.api.model.PolarEcgData;
+import com.polar.sdk.api.model.PolarHrData;
+import com.polar.sdk.api.model.PolarSensorSetting;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
@@ -999,6 +1002,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private ChartHelper chartHelper;
+    private float graphViewPortWidth = 2.0f;
+    private int maxDataPoints = 1000;
 
     /**
      * Return date in specified format.
@@ -1542,7 +1547,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public String toString() {
             return "TestDataPacket{" +
-                    "polarData=" + polarData.rrsMs.toString() +
+                    "polarData=" + polarData.getSamples().get(0).getRrsMs().toString() +
                     ", timestamp=" + timestamp +
                     '}';
         }
@@ -1617,7 +1622,7 @@ public class MainActivity extends AppCompatActivity {
                     // Send updates, advancing time, until most-recent RR fits in current window
                     while (elapsedMS > nextUpdateMS) {
                         // Send update
-                        PolarHrData data = new PolarHrData(hr, rrs, true, true, true);
+                        List<PolarHrData.PolarHrSample> samples = new java.util.ArrayList<>(); samples.add(new PolarHrData.PolarHrSample(hr, rrs, true, true, true)); PolarHrData data = new PolarHrData(samples);
                         TestDataPacket testData = new TestDataPacket();
                         testData.polarData = data;
                         testData.timestamp = baseTimeStamp + nextUpdateMS;
@@ -1725,10 +1730,10 @@ public class MainActivity extends AppCompatActivity {
         if (broadcastDisposable == null) {
             broadcastDisposable = api.startListenForPolarHrBroadcasts(null)
                     .subscribe(polarBroadcastData -> {
-                                if (!discoveredDevices.containsKey(polarBroadcastData.polarDeviceInfo.deviceId)) {
-                                    String desc = polarBroadcastData.polarDeviceInfo.name;
-                                    String msg = getString(R.string.Discovered)+" " + desc + " "+getString(R.string.HeartRateAbbrev)+" " + polarBroadcastData.hr;
-                                    discoveredDevices.put(polarBroadcastData.polarDeviceInfo.deviceId, desc);
+                                if (!discoveredDevices.containsKey(polarBroadcastData.getPolarDeviceInfo().getDeviceId())) {
+                                    String desc = polarBroadcastData.getPolarDeviceInfo().getName();
+                                    String msg = getString(R.string.Discovered)+" " + desc + " "+getString(R.string.HeartRateAbbrev)+" " + polarBroadcastData.getHr();
+                                    discoveredDevices.put(polarBroadcastData.getPolarDeviceInfo().getDeviceId(), desc);
                                     Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
                                     Log.d(TAG, msg);
                                 }
@@ -1809,7 +1814,7 @@ public class MainActivity extends AppCompatActivity {
         //setContentView(R.layout.activity_fragment_container);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        chartHelper = new ChartHelper(binding.lineChart);
+        chartHelper = new ChartHelper(this, binding.lineChart);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -1818,24 +1823,24 @@ public class MainActivity extends AppCompatActivity {
 
         // Notice PolarBleApi.ALL_FEATURES are enabled
         //api = PolarBleApiDefaultImpl.defaultImplementation(this, PolarBleApi.ALL_FEATURES);
-        api = PolarBleApiDefaultImpl.defaultImplementation(this, PolarBleApi.FEATURE_HR | PolarBleApi.FEATURE_BATTERY_INFO | PolarBleApi.FEATURE_DEVICE_INFO | PolarBleApi.FEATURE_POLAR_SENSOR_STREAMING);
+        api = PolarBleApiDefaultImpl.defaultImplementation(this, new java.util.HashSet<>(java.util.Arrays.asList(PolarBleApi.PolarBleSdkFeature.values())));
         //api.setPolarFilter(false);
 
-        text_time = this.findViewById(R.id.timeView);
-        text_batt = this.findViewById(R.id.battView);
-        text_mode = this.findViewById(R.id.modeView);
-        text_hr = this.findViewById(R.id.hrTextView);
-        text_secondary = this.findViewById(R.id.hrvTextView);
-        text_secondary_label = this.findViewById(R.id.hrvLabel);
-        text_a1 = this.findViewById(R.id.a1TextView);
-        text_a1_label = this.findViewById(R.id.a1Label);
-        text_artifacts = this.findViewById(R.id.artifactsView);
-        text_view = this.findViewById(R.id.textView);
+        text_time = binding.chipElapsedTime;
+        // text_batt not in new layout
+        // text_mode not in new layout
+        text_hr = binding.textHeartRate;
+        text_secondary = binding.textRMSSD;
+        // text_secondary_label not in new layout
+        text_a1 = binding.textAlpha1Value;
+        // text_a1_label not in new layout
+        text_artifacts = binding.textArtifacts;
+        // text_view not in new layout
 
         //text.setTextSize(100);
         //text.setMovementMethod(new ScrollingMovementMethod());
 
-        scrollView = this.findViewById(R.id.application_container);
+        // scrollView not in new layout
         // FIXME: Why does the scrollable not start with top visible?
 
         testDFA_alpha1();
@@ -1907,22 +1912,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void deviceConnected(@NonNull PolarDeviceInfo polarDeviceInfo) {
                 quitSearchForPolarDevices();
-                SENSOR_ID = polarDeviceInfo.deviceId;
-                Log.d(TAG, "Polar device CONNECTED: " + polarDeviceInfo.deviceId);
+                SENSOR_ID = polarDeviceInfo.getDeviceId();
+                Log.d(TAG, "Polar device CONNECTED: " + polarDeviceInfo.getDeviceId());
                 Toast.makeText(getBaseContext(), getString(R.string.ConnectedToDevice)+" " + SENSOR_ID, Toast.LENGTH_SHORT).show();
-                ensurePreferenceSet(POLAR_DEVICE_ID_PREFERENCE_STRING,polarDeviceInfo.deviceId);
+                ensurePreferenceSet(POLAR_DEVICE_ID_PREFERENCE_STRING,polarDeviceInfo.getDeviceId());
             }
 
             @Override
             public void deviceConnecting(@NonNull PolarDeviceInfo polarDeviceInfo) {
-                Log.d(TAG, "Polar device CONNECTING"+": " + polarDeviceInfo.deviceId);
-                text_view.setText(getString(R.string.ConnectingToHeartRateSensor)+" " + polarDeviceInfo.deviceId);
+                Log.d(TAG, "Polar device CONNECTING"+": " + polarDeviceInfo.getDeviceId());
+                text_view.setText(getString(R.string.ConnectingToHeartRateSensor)+" " + polarDeviceInfo.getDeviceId());
             }
 
             @Override
             public void deviceDisconnected(@NonNull PolarDeviceInfo polarDeviceInfo) {
-                Log.d(TAG, "DISCONNECTED: " + polarDeviceInfo.deviceId);
-                text_view.setText(getString(R.string.DisconnectedFromHeartRateSensor)+" " + polarDeviceInfo.deviceId);
+                Log.d(TAG, "DISCONNECTED: " + polarDeviceInfo.getDeviceId());
+                text_view.setText(getString(R.string.DisconnectedFromHeartRateSensor)+" " + polarDeviceInfo.getDeviceId());
                 ecgDisposable = null;
 //                accDisposable = null;
 //                gyrDisposable = null;
@@ -1933,9 +1938,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void streamingFeaturesReady(@NonNull final String identifier,
-                                               @NonNull final Set<PolarBleApi.DeviceStreamingFeature> features) {
-                for (PolarBleApi.DeviceStreamingFeature feature : features) {
+            public void bleSdkFeatureReady(@NonNull final String identifier,
+                                               @NonNull final PolarBleApi.PolarBleSdkFeature feature) {
+                if (true) { // single feature now
                     Log.d(TAG, "Streaming feature " + feature.toString() + " is ready");
                     text_view.setText("Streaming feature " + feature.toString() + " is ready");
                 }
@@ -1962,15 +1967,9 @@ public class MainActivity extends AppCompatActivity {
             //NotificationManagerCompat notificationManager = NotificationManagerCompat.from(thisContext);
 
             // FIXME: this is a makeshift main event & timer loop
-            @Override
-            public void hrNotificationReceived(@NonNull String identifier, @NonNull PolarHrData data) {
-                updateTrackedFeatures(data, System.currentTimeMillis(), true);
-            }
+            // hrNotificationReceived removed in SDK 5.x - HR now via startHrStreaming
 
-            @Override
-            public void polarFtpFeatureReady(@NonNull String s) {
-                Log.d(TAG, "FTP ready");
-            }
+            // polarFtpFeatureReady removed in SDK 5.x
         });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && savedInstanceState == null) {
@@ -1981,11 +1980,7 @@ public class MainActivity extends AppCompatActivity {
 
         expireLogFiles();
 
-        scrollView.post(new Runnable() {
-            public void run() {
-                scrollView.scrollTo(0, 0);
-            }
-        });
+        // scrollView removed - using CoordinatorLayout
 
         // auto-start
         if (!sharedPreferences.getBoolean(ENABLE_REPLAY,false)) {
@@ -2052,10 +2047,10 @@ public class MainActivity extends AppCompatActivity {
             // startup: record relative timestamps
             if (!ecgMonitoring) {
                 ecgStartTSmillis = System.currentTimeMillis();
-                ecgStartInternalTSnanos = polarEcgData.timeStamp;
+                ecgStartInternalTSnanos = polarEcgData.getTimeStamp();
                 ecgMonitoring = true;
             }
-            for (Integer microVolts : polarEcgData.samples) {
+            for (com.polar.sdk.api.model.PolarEcgData.PolarEcgDataSample ecgSample : polarEcgData.getSamples()) { int microVolts = ecgSample.getVoltage();
                 peakECGuVolts = max(abs(microVolts), peakECGuVolts);
             }
             lastPolarEcgData.add(polarEcgData);
@@ -2079,7 +2074,7 @@ public class MainActivity extends AppCompatActivity {
             while (!lastPolarEcgData.isEmpty ()) {
                 PolarEcgData ecgPacket = lastPolarEcgData.remove();
                 // elapsed time since ecg start (nanosecs)
-                long ecgElapsedNanos = ecgPacket.timeStamp - ecgStartInternalTSnanos;
+                long ecgElapsedNanos = ecgPacket.getTimeStamp() - ecgStartInternalTSnanos;
                 // elapsed time since logging started (millisecs)
                 long ecgElapsedMS = (ecgElapsedNanos / 1000000) + (ecgStartTSmillis - firstSampleTimestampMS);
                 String elapsedStr = formatSecAsTime((long)(ecgElapsedMS / 1000.0));
@@ -2087,9 +2082,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG,"logEcgData: logging packet "+ecgElapsedMS);
                 Date d = new Date(firstSampleTimestampMS + ecgElapsedMS);
                 String dateStr = sdf.format(d);
-                for (Integer microVolts : ecgPacket.samples) {
-                    writeLogFile(dateStr + "," + ecgPacket.timeStamp +"," +elapsedStr+ ","+ecgSegment+"," + ecgSample + "," + microVolts.toString(), "ecg");
-                    ecgSample++;
+                int ecgSampleIdx = 0; for (com.polar.sdk.api.model.PolarEcgData.PolarEcgDataSample ecgSampleData : ecgPacket.getSamples()) { int microVolts = ecgSampleData.getVoltage();
+                    writeLogFile(dateStr + "," + ecgPacket.getTimeStamp() +"," +elapsedStr+ ","+ecgSegment+"," + ecgSampleIdx + "," + String.valueOf(microVolts), "ecg");
+                    ecgSampleIdx++;
                 }
             }
         }
@@ -2114,7 +2109,7 @@ public class MainActivity extends AppCompatActivity {
     private void startECG() {
         if (ecgDisposable == null) {
             Log.d(TAG, "startECG create ecgDisposable");
-            ecgDisposable = api.requestStreamSettings(SENSOR_ID, PolarBleApi.DeviceStreamingFeature.ECG)
+            ecgDisposable = api.requestStreamSettings(SENSOR_ID, com.polar.sdk.api.PolarBleApi.PolarDeviceDataType.ECG)
                     .toFlowable()
                     .flatMap((Function<PolarSensorSetting, Publisher<PolarEcgData>>) polarEcgSettings -> {
                         PolarSensorSetting sensorSetting = polarEcgSettings.maxSettings();
@@ -2203,7 +2198,7 @@ public class MainActivity extends AppCompatActivity {
             thisIsFirstSample = true;
             firstSampleTimestampMS = currentTimeMS;
             // FIXME: why does the scroller not start with the top visible?
-            scrollView.scrollTo(0,0);
+            // scrollView.scrollTo(0,0); // removed - using CoordinatorLayout
         }
         elapsedMS = (currentTimeMS - firstSampleTimestampMS);
         //Log.d(TAG, "====================");
@@ -2220,14 +2215,14 @@ public class MainActivity extends AppCompatActivity {
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             }
         }
-        currentHR = data.hr;
+        currentHR = data.getSamples().get(0).getHr();
         if (timeForUIupdate) {
             String artifactCorrectionThresholdSetting = sharedPreferences.getString(ARTIFACT_REJECTION_THRESHOLD_PREFERENCE_STRING, "Auto");
             if (artifactCorrectionThresholdSetting.equals("Auto")) {
-                if (data.hr > 95) {
+                if (data.getSamples().get(0).getHr() > 95) {
                 exerciseMode = getString(R.string.Workout);
                 artifactCorrectionThreshold = 0.05;
-                } else if (data.hr < 80) {
+                } else if (data.getSamples().get(0).getHr() < 80) {
                     exerciseMode = getString(R.string.Light);
                     artifactCorrectionThreshold = 0.25;
                 }
@@ -2275,7 +2270,7 @@ public class MainActivity extends AppCompatActivity {
         }
         // test: use ONLY for RRs
         long timestamp = currentTimeMS;
-        for (int rr : data.rrsMs) {
+        for (int rr : data.getSamples().get(0).getRrsMs()) {
             String msg = "" + timestamp + "," + rr + "," + logRRelapsedMS;
             writeLogFile(msg, "rr");
             logRRelapsedMS += rr;
@@ -2286,9 +2281,9 @@ public class MainActivity extends AppCompatActivity {
         //
         String rejected = "";
         boolean haveArtifacts = false;
-        List<Integer> rrsMs = data.rrsMs;
-        for (int si = 0; si < data.rrsMs.size(); si++) {
-            double newRR = data.rrsMs.get(si);
+        List<Integer> rrsMs = data.getSamples().get(0).getRrsMs();
+        for (int si = 0; si < data.getSamples().get(0).getRrsMs().size(); si++) {
+            double newRR = data.getSamples().get(0).getRrsMs().get(si);
             double lowerBound = prevrr * (1 - artifactCorrectionThreshold);
             double upperBound = prevrr * (1 + artifactCorrectionThreshold);
             //Log.d(TAG, "prevrr " + prevrr + " lowerBound " + lowerBound + " upperBound " + upperBound);
@@ -2473,7 +2468,7 @@ public class MainActivity extends AppCompatActivity {
             if (!lastPolarEcgData.isEmpty()) {
                 logmsg.append("ECG ");
             }
-            logmsg.append("RRs: " + data.rrsMs+" ");
+            logmsg.append("RRs: " + data.getSamples().get(0).getRrsMs()+" ");
             logmsg.append(rejMsg);
             logmsg.append("Total rejected: " + totalRejected+" ");
             logmsg.append("ECG Peak: "+ lastECGpeak +" uV");
@@ -2491,7 +2486,7 @@ public class MainActivity extends AppCompatActivity {
                 text_artifacts.setBackgroundResource(R.color.colorBackground);
             }
             text_view.setText(logstring);
-            text_hr.setText("" + data.hr);
+            text_hr.setText("" + data.getSamples().get(0).getHr());
             text_secondary_label.setText(R.string.RootMeanSquareSuccessiveDifferencesAbbreviation);
             text_secondary.setText("" + round(rmssdWindowed));
             text_a1.setText("" + alpha1V2RoundedWindowed);
@@ -2526,7 +2521,7 @@ public class MainActivity extends AppCompatActivity {
                         zone = 0;
                     }
             }
-            Log.d(TAG, "HR "+data.hr + " " + alpha1V2RoundedWindowed + " " + rmssdWindowed);
+            Log.d(TAG, "HR "+data.getSamples().get(0).getHr() + " " + alpha1V2RoundedWindowed + " " + rmssdWindowed);
             Log.d(TAG, logstring);
             Log.d(TAG, "Elapsed % alpha1EvalPeriod " + (elapsedSecondsTrunc % alpha1EvalPeriodSec));
         }
@@ -2541,41 +2536,41 @@ public class MainActivity extends AppCompatActivity {
         boolean scrollToEnd = (realTime && pre1 && pre2) || (!realTime && pre1);
         if (scrollToEnd) lastScrollToEndElapsedSec = elapsedSecondsTrunc;
         double elapsedMinRoundForRRs = elapsedMinRound;
-        if (graphFeatures.contains("rr")) {
-            for (int rr : data.rrsMs) {
-                elapsedMinRoundForRRs += rr / 60000;
-                rrSeries.appendData(new DataPoint(elapsedMinRoundForRRs, rr / 5.0), scrollToEnd, maxDataPoints);
-            }
-        }
-        DataPoint hrDataPoint = new DataPoint(elapsedMinRound, data.hr);
-        if (timeForHRplot && graphFeatures.contains("hr")) {
-            hrSeries.appendData(hrDataPoint, scrollToEnd, maxDataPoints);
+        // GraphView RR series removed
+        // DataPoint hrDataPoint = new DataPoint(elapsedMinRound, data.getSamples().get(0).getHr());
+        if (false && timeForHRplot && graphFeatures.contains("hr")) {
+            // hrSeries.appendData(hrDataPoint, scrollToEnd, maxDataPoints);
         }
         if (timeForUIupdate) {
                 if (graphFeatures.contains("a1")) {
-                    a1V2Series.appendData(new DataPoint(elapsedMinRound, alpha1V2RoundedWindowed * 100.0), scrollToEnd, maxDataPoints);
+//                     a1V2Series.appendData(new DataPoint(elapsedMinRound, alpha1V2RoundedWindowed * 100.0), scrollToEnd, maxDataPoints);
                 }
                 if (graphFeatures.contains("artifacts")) {
-                    artifactSeries.appendData(new DataPoint(elapsedMinRound, artifactsPercentWindowed / 10.0), scrollToEnd, maxDataPoints);
+//                     artifactSeries.appendData(new DataPoint(elapsedMinRound, artifactsPercentWindowed / 10.0), scrollToEnd, maxDataPoints);
                 }
                 if (graphFeatures.contains("peakECG")) {
-                    ecgPeakSeries.appendData(new DataPoint(elapsedMinRound, lastECGpeak / 10.0), scrollToEnd, maxDataPoints);
+//                     ecgPeakSeries.appendData(new DataPoint(elapsedMinRound, lastECGpeak / 10.0), scrollToEnd, maxDataPoints);
                 }
                 if (graphFeatures.contains("rmssd")) {
-                    rmssdSeries.appendData(new DataPoint(elapsedMinRound, round(rmssdWindowed * 2)), scrollToEnd, maxDataPoints);
+//                     rmssdSeries.appendData(new DataPoint(elapsedMinRound, round(rmssdWindowed * 2)), scrollToEnd, maxDataPoints);
                 }
                 if (graphFeatures.contains("hrWin")) {
-                    hrWinSeries.appendData(new DataPoint(elapsedMinRound, hrMeanWindowed), scrollToEnd, maxDataPoints);
+//                     hrWinSeries.appendData(new DataPoint(elapsedMinRound, hrMeanWindowed), scrollToEnd, maxDataPoints);
                 }
                 if (scrollToEnd) {
                     double nextX = elapsedMinRound + tenSecAsMin;
-                    a1HRVvt1Series.appendData(new DataPoint(nextX, 75), scrollToEnd, maxDataPoints);
-                    a1HRVvt2Series.appendData(new DataPoint(nextX, 50), scrollToEnd, maxDataPoints);
-                    a125Series.appendData(new DataPoint(nextX, 25), scrollToEnd, maxDataPoints);
-                    a1125Series.appendData(new DataPoint(nextX, 125), scrollToEnd, maxDataPoints);
-                    a1175Series.appendData(new DataPoint(nextX, 175), scrollToEnd, maxDataPoints);
+//                     a1HRVvt1Series.appendData(new DataPoint(nextX, 75), scrollToEnd, maxDataPoints);
+//                     a1HRVvt2Series.appendData(new DataPoint(nextX, 50), scrollToEnd, maxDataPoints);
+//                     a125Series.appendData(new DataPoint(nextX, 25), scrollToEnd, maxDataPoints);
+//                     a1125Series.appendData(new DataPoint(nextX, 125), scrollToEnd, maxDataPoints);
+//                     a1175Series.appendData(new DataPoint(nextX, 175), scrollToEnd, maxDataPoints);
                 }
         }
+        chartHelper.addDataPoint((float)elapsedMinRound, data.getSamples().get(0).getHr(),
+                (float)(alpha1V2RoundedWindowed * 100.0),
+                (float)round(rmssdWindowed),
+                data.getSamples().get(0).getRrsMs().isEmpty() ? 0 : data.getSamples().get(0).getRrsMs().get(data.getSamples().get(0).getRrsMs().size()-1),
+                artifactsPercentWindowed);
 
         audioUpdate(data, currentTimeMS);
 
@@ -2777,7 +2772,7 @@ public class MainActivity extends AppCompatActivity {
         // this will clobber the standard behavior(?)
         if (audioOutputOnZoneChange) {
             if (zone != zonePrev){
-                featuresUpdate = alpha1V2RoundedWindowed + " " + data.hr;
+                featuresUpdate = alpha1V2RoundedWindowed + " " + data.getSamples().get(0).getHr();
                 artifactsUpdate = getString(R.string.Dropped_TextToSpeech) + " " + artifactsPercentWindowed + " " + getString(R.string.Percent_TextToSpeech);
             }
         }
@@ -2786,19 +2781,19 @@ public class MainActivity extends AppCompatActivity {
                     artifactsUpdate = getString(R.string.Dropped_TextToSpeech)+" " + artifactsPercentWindowed + " "+getString(R.string.Percent_TextToSpeech);
                 }
                 // lower end of optimal alph1 - close to overtraining - frequent updates, prioritise a1, abbreviated
-                if (data.hr > upperOptimalHRthreshold || a1 < lowerOptimalAlpha1Threshold) {
-                    featuresUpdate = alpha1V2RoundedWindowed + " " + data.hr;
+                if (data.getSamples().get(0).getHr() > upperOptimalHRthreshold || a1 < lowerOptimalAlpha1Threshold) {
+                    featuresUpdate = alpha1V2RoundedWindowed + " " + data.getSamples().get(0).getHr();
                 // higher end of optimal - prioritise a1, close to undertraining?
-                } else if ((data.hr > (upperOptimalHRthreshold - 10) || alpha1V2RoundedWindowed < upperOptimalAlpha1Threshold)) {
-                    featuresUpdate =  getString(R.string.AlphaOne_TextToSpeech)+", " + alpha1V2RoundedWindowed + " "+getString(R.string.HeartRate_TextToSpeech)+" " + data.hr;
+                } else if ((data.getSamples().get(0).getHr() > (upperOptimalHRthreshold - 10) || alpha1V2RoundedWindowed < upperOptimalAlpha1Threshold)) {
+                    featuresUpdate =  getString(R.string.AlphaOne_TextToSpeech)+", " + alpha1V2RoundedWindowed + " "+getString(R.string.HeartRate_TextToSpeech)+" " + data.getSamples().get(0).getHr();
                 // lower end of optimal - prioritise a1
                 } else if (artifactsPercentWindowed > artifactsRateAlarmThreshold ||
-                    data.hr > upperRestingHRthreshold && timeSinceLastSpokenUpdate_s >= maxUpdateWaitSeconds) {
-                    featuresUpdate = getString(R.string.AlphaOne_TextToSpeech)+" " + alpha1V2RoundedWindowed + " "+getString(R.string.HeartRate_TextToSpeechFull)+" "+ data.hr;
+                    data.getSamples().get(0).getHr() > upperRestingHRthreshold && timeSinceLastSpokenUpdate_s >= maxUpdateWaitSeconds) {
+                    featuresUpdate = getString(R.string.AlphaOne_TextToSpeech)+" " + alpha1V2RoundedWindowed + " "+getString(R.string.HeartRate_TextToSpeechFull)+" "+ data.getSamples().get(0).getHr();
                 // warm up / cool down --- low priority, update RMSSD instead of alpha1
                 } else if (artifactsPercentWindowed > artifactsRateAlarmThreshold ||
                         timeSinceLastSpokenUpdate_s >= maxUpdateWaitSeconds) {
-                    featuresUpdate = getString(R.string.HeartRateFull_TextToSpeech)+" " + data.hr + ". "+getString(R.string.HeartRateVariabilityAbbrev_TextToSpeech)+" " + rmssd;
+                    featuresUpdate = getString(R.string.HeartRateFull_TextToSpeech)+" " + data.getSamples().get(0).getHr() + ". "+getString(R.string.HeartRateVariabilityAbbrev_TextToSpeech)+" " + rmssd;
                 }
             }
             if (featuresUpdate.length() > 0) {
@@ -2830,14 +2825,14 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
             text_view.setText("Paused");
             super.onPause();
-            api.backgroundEntered();
+            // // api.backgroundEntered(); // removed in SDK 5.x // removed in SDK 5.x
     }
 
     @Override
     public void onResume() {
             text_view.setText("Resumed");
             super.onResume();
-            api.foregroundEntered();
+            // // api.foregroundEntered(); // removed in SDK 5.x // removed in SDK 5.x
     }
 
     private void takeScreenshot() {

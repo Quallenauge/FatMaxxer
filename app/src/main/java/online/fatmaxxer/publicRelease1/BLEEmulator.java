@@ -1,5 +1,7 @@
 package online.fatmaxxer.publicRelease1;
 
+import online.fatmaxxer.fatmaxxer.R;
+
 //
 //        MIT License
 //

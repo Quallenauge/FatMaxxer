@@ -1,31 +1,18 @@
-// ============================================================
-// app/build.gradle — FatMaxxer (fearby fork)
-// Key changes:
-//   - compileSdk 35 (Android 15), minSdk 26, targetSdk 35
-//   - Replaced jcenter() with mavenCentral()
-//   - Replaced abandoned GraphView with MPAndroidChart
-//   - Added Material 3
-//   - Added FileProvider support (fixes log export on Android 10+)
-//   - Added Kotlin stdlib for incremental migration
-// ============================================================
-
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'  // enables Kotlin in parallel with Java
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
     namespace 'online.fatmaxxer.fatmaxxer'
-
-    compileSdk 35  // was 33
+    compileSdk 35
 
     defaultConfig {
         applicationId "online.fatmaxxer.fatmaxxer"
-        minSdk 26           // was likely 21; H10 SDK requires 24+, bumping to 26 is safe
-        targetSdk 35        // was 33
+        minSdk 26
+        targetSdk 35
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -42,7 +29,7 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17   // was 1.8 or 11
+        sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
 
@@ -51,12 +38,11 @@ android {
     }
 
     buildFeatures {
-        viewBinding true   // enables ViewBinding — cleaner than findViewById
+        viewBinding true
     }
 }
 
 dependencies {
-    // ---- AndroidX core ----
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -64,25 +50,20 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.2'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.2'
 
-    // ---- Material 3 (replaces old Material 1.x) ----
     implementation 'com.google.android.material:material:1.12.0'
 
-    // ---- Charting: MPAndroidChart (replaces abandoned GraphView) ----
-    // GraphView (com.jjoe64:graphview) has not been updated since 2019
-    // MPAndroidChart is actively maintained and far more capable
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
-    // ---- Kotlin stdlib (for gradual migration) ----
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.0'
 
-    // ---- Polar BLE SDK (keep whatever version upstream uses) ----
-    // Check upstream app/build.gradle for exact version; example:
     implementation 'com.github.polarofficial:polar-ble-sdk:5.5.0'
 
-    // ---- EJML (matrix library used for DFA calculation) ----
     implementation 'org.ejml:ejml-simple:0.43.1'
 
-    // ---- Testing ----
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.6'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+    implementation 'org.reactivestreams:reactive-streams:1.0.4'
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'

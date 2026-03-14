@@ -1,4 +1,4 @@
-package online.fatmaxxer.fatmaxxer;
+package online.fatmaxxer.publicRelease1;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -48,7 +48,7 @@ import java.util.List;
  *   4. On BLE disconnect / session end:
  *        chartManager.clear();
  */
-public class Alpha1ChartManager {
+public class ChartHelper {
 
     // ---- Chart viewport ----
     private static final float VIEWPORT_MINUTES = 2.0f;  // rolling 2-minute window
@@ -92,7 +92,7 @@ public class Alpha1ChartManager {
     private boolean showRr        = false;
     private boolean showArtifacts = true;
 
-    public Alpha1ChartManager(Context context, LineChart chart) {
+    public ChartHelper(Context context, LineChart chart) {
         this.context = context;
         this.chart = chart;
     }
@@ -131,8 +131,8 @@ public class Alpha1ChartManager {
         xAxis.setGridColor(COLOR_GRID);
         xAxis.setAxisLineColor(COLOR_TEXT);
         xAxis.setLabelCount(5, true);
-        xAxis.setValueFormatter((value, axis) ->
-                String.format("%.1fm", value));
+        xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() { @Override public String getFormattedValue(float value) {
+                return String.format("%.1fm", value); } });
 
         // ---- Primary Y axis (left): α1×100, HR, RMSSD, RR ----
         YAxis leftAxis = chart.getAxisLeft();
@@ -170,8 +170,8 @@ public class Alpha1ChartManager {
         rightAxis.setAxisMinimum(0f);
         rightAxis.setAxisMaximum(10f);
         rightAxis.setLabelCount(6, true);
-        rightAxis.setValueFormatter((value, axis) ->
-                String.format("%.0f%%", value));
+        rightAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() { @Override public String getFormattedValue(float value) {
+                return String.format("%.0f%%", value); } });
 
         // ---- Initialise datasets ----
         dsAlpha1    = makeDataSet("α1 ×100",    COLOR_ALPHA1,    2.5f, YAxis.AxisDependency.LEFT);

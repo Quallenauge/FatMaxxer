@@ -1,4 +1,4 @@
-package online.fatmaxxer.fatmaxxer;
+package online.fatmaxxer.publicRelease1;
 
 import android.app.Activity;
 import android.content.Context;
@@ -46,7 +46,7 @@ import java.util.Locale;
  *   // To export:
  *   LogExportHelper.shareAllLogs(this);
  */
-public class LogExportHelper {
+public class FileExportHelper {
 
     private static final String TAG = "LogExportHelper";
     private static final String LOG_DIR_NAME = "logs";
