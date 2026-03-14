@@ -1808,7 +1808,7 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(MainActivity.this, LocalService.class);
         i.setAction("START");
         Log.d(TAG, "intent to start local service " + i);
-        ComponentName serviceComponentName = MainActivity.this.startService(i);
+        ComponentName serviceComponentName = null; try { serviceComponentName = MainActivity.this.startService(i); } catch (Exception e) { android.util.Log.w("MainActivity", "startService failed: " + e.getMessage()); }
         Log.d(TAG, "start result " + serviceComponentName);
 
         ActionBar actionBar = getSupportActionBar();
@@ -1818,6 +1818,7 @@ public class MainActivity extends AppCompatActivity {
 
         //setContentView(R.layout.activity_fragment_container);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setSupportActionBar(binding.toolbar);
         setContentView(binding.getRoot());
         chartHelper = new ChartHelper(this, binding.lineChart);
 
@@ -1945,9 +1946,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void bleSdkFeatureReady(@NonNull final String identifier,
                                                @NonNull final PolarBleApi.PolarBleSdkFeature feature) {
-                if (true) { // single feature now
-                    Log.d(TAG, "Streaming feature " + feature.toString() + " is ready");
-                    if (text_view != null) text_view.setText("Streaming feature " + feature.toString() + " is ready");
+                Log.d(TAG, "Streaming feature " + feature.toString() + " is ready");
+                if (feature == PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING || feature == PolarBleApi.PolarBleSdkFeature.FEATURE_HR) {
+                    api.startHrStreaming(identifier)
+                        .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                        .subscribe(
+                            data -> updateTrackedFeatures(data, System.currentTimeMillis(), true),
+                            error -> Log.e(TAG, "HR streaming error: " + error)
+                        );
                 }
             }
 
@@ -1973,6 +1979,7 @@ public class MainActivity extends AppCompatActivity {
 
             // FIXME: this is a makeshift main event & timer loop
             // hrNotificationReceived removed in SDK 5.x - HR now via startHrStreaming
+            // HR streaming is started in bleSdkFeatureReady when FEATURE_HR is ready
 
             // polarFtpFeatureReady removed in SDK 5.x
         });
@@ -2331,9 +2338,9 @@ public class MainActivity extends AppCompatActivity {
         //Log.d(TAG, "updateTrackedFeatures timeForHRplot");
         if (timeForHRplot) {
             String positive = formatSecAsTime(absSeconds);
-            text_mode.setText(exerciseMode);
+            if (text_mode != null) text_mode.setText(exerciseMode);
             text_time.setText(positive);
-            text_batt.setText("\uD83D\uDD0B" + batteryLevel);
+            if (text_batt != null) text_batt.setText("\uD83D\uDD0B" + batteryLevel);
         }
 
         //
@@ -2492,7 +2499,7 @@ public class MainActivity extends AppCompatActivity {
             }
             if (text_view != null) text_view.setText(logstring);
             text_hr.setText("" + data.getSamples().get(0).getHr());
-            text_secondary_label.setText(R.string.RootMeanSquareSuccessiveDifferencesAbbreviation);
+            if (text_secondary_label != null) text_secondary_label.setText(R.string.RootMeanSquareSuccessiveDifferencesAbbreviation);
             text_secondary.setText("" + round(rmssdWindowed));
             text_a1.setText("" + alpha1V2RoundedWindowed);
             text_a1_label.setText(getString(R.string.alpha1) + " [" + a1v2cacheMisses + "]");
