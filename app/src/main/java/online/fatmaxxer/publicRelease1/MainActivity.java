@@ -1926,7 +1926,7 @@ public class MainActivity extends AppCompatActivity {
             if (text_secondary_label != null) text_secondary_label.setText(R.string.RootMeanSquareSuccessiveDifferencesAbbreviation);
             text_secondary.setText("" + round(rmssdWindowed));
             text_a1.setText("" + alpha1V2RoundedWindowed);
-            text_a1_label.setText(getString(R.string.alpha1) + " [" + dfaCalculator.getCacheMisses() + "]");
+            //text_a1_label.setText(getString(R.string.alpha1) + " [" + dfaCalculator.getCacheMisses() + "]");
             // configurable top-of-optimal threshold for alpha1
             double alpha1MaxOptimal = Double.parseDouble(sharedPreferences.getString("alpha1MaxOptimal", "1.0"));
             if (elapsedSecondsTrunc < 20) {
