@@ -131,6 +131,8 @@ public class ChartHelper {
         xAxis.setTextColor(COLOR_TEXT);
         xAxis.setGridColor(COLOR_GRID);
         xAxis.setAxisLineColor(COLOR_TEXT);
+        xAxis.setAxisMinimum(0);
+        xAxis.setAxisMaximum(VIEWPORT_MINUTES);
         xAxis.setLabelCount(5, true);
         xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() { @Override public String getFormattedValue(float value) {
                 return String.format("%.1fm", value); } });
