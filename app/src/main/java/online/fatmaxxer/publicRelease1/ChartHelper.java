@@ -266,11 +266,32 @@ public class ChartHelper {
     }
 
     private void addEntry(LineDataSet ds, float x, float y) {
+        // 1. The Gatekeeper: Enforce strictly ascending X-values
+        if (ds.getEntryCount() > 0) {
+            float lastX = ds.getEntryForIndex(ds.getEntryCount() - 1).getX();
+
+            if (x <= lastX) {
+                // Option A: Drop the invalid point (Recommended for high-frequency sensor data)
+                Log.w(TAG, String.format("Rejected entry: x=%f is not strictly greater than lastX=%f", x, lastX));
+                return;
+
+                // Option B: Artificially nudge the X-value forward to keep the point
+                // x = lastX + 0.0001f;
+            }
+        }
+
+        Log.d(TAG, String.format("Add entry to ds: x: %f y: %f", x, y));
         ds.addEntry(new Entry(x, y));
-        // Trim old entries outside the rolling window to keep memory bounded
-        while (ds.getEntryCount() > 0 &&
-               ds.getEntryForIndex(0).getX() < x - VIEWPORT_MINUTES - 0.5f) {
-            ds.removeFirst();
+
+        // 2. Trim old entries safely
+        // (Your existing logic is good, but we ensure we don't crash if the dataset becomes empty during the loop)
+        try {
+            while (ds.getEntryCount() > 0 &&
+                    ds.getEntryForIndex(0).getX() < (x - VIEWPORT_MINUTES - 0.5f)) {
+                ds.removeFirst();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error trimming dataset: " + e.getMessage());
         }
     }
 
