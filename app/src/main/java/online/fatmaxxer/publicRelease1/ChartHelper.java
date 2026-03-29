@@ -95,6 +95,7 @@ public class ChartHelper {
     public ChartHelper(Context context, LineChart chart) {
         this.context = context;
         this.chart = chart;
+        init();
     }
 
     /**
