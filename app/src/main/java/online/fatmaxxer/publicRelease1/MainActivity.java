@@ -1961,14 +1961,23 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, logstring);
             Log.d(TAG, "Elapsed % alpha1EvalPeriod " + (elapsedSecondsTrunc % alpha1EvalPeriodSec));
         }
-        elapsedMin = this.elapsedMS / 60000.0;
-        double elapsedMinRound = round(this.elapsedMin * 1000) / 1000.0;
-        chartHelper.addDataPoint((float)elapsedMinRound, data.getSamples().get(0).getHr(),
-                (float)(alpha1V2RoundedWindowed * 100.0),
-                (float)round(rmssdWindowed),
-                data.getSamples().get(0).getRrsMs().isEmpty() ? 0 : data.getSamples().get(0).getRrsMs().get(data.getSamples().get(0).getRrsMs().size()-1),
-                artifactsPercentWindowed);
-
+        float elapsedMinRound = (float) (this.elapsedMS / 60000.0);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // 1. Add the data and trim old entries ON THE UI THREAD
+                try {
+                    chartHelper.addDataPoint((float) elapsedMinRound,
+                            (float) (alpha1V2RoundedWindowed * 100.0),
+                            data.getSamples().get(0).getHr(),
+                            (float) round(rmssdWindowed),
+                            data.getSamples().get(0).getRrsMs().isEmpty() ? 0 : data.getSamples().get(0).getRrsMs().get(data.getSamples().get(0).getRrsMs().size() - 1),
+                            artifactsPercentWindowed);
+                }catch(Exception e){
+                    Log.d(TAG, e.toString());
+                }
+            }
+        });
         audioFeedback.update(new AudioFeedbackManager.TrainingState(
                 alpha1V2RoundedWindowed, data.getSamples().get(0).getHr(),
                 (int) round(rmssdWindowed), artifactsPercentWindowed,
