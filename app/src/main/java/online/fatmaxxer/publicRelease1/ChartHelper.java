@@ -2,6 +2,7 @@ package online.fatmaxxer.publicRelease1;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 
 import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.charts.LineChart;
@@ -49,6 +50,8 @@ import java.util.List;
  *        chartManager.clear();
  */
 public class ChartHelper {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     // ---- Chart viewport ----
     private static final float VIEWPORT_MINUTES = 2.0f;  // rolling 2-minute window
@@ -205,11 +208,16 @@ public class ChartHelper {
         addEntry(dsRr,        elapsedMinutes, rrIntervalMs / 5f);
         addEntry(dsArtifacts, elapsedMinutes, artifactPct);
 
+        Log.w(TAG, String.format("Add Point: dsAlpha1: [%f] dsHr: [%f], dsRmssd: [%f], dsRr: [%f] dsArtifacts: [%f]", alpha1, hrBpm, rmssd, (rrIntervalMs / 5f), artifactPct));
+
         // Slide the X viewport — always show the last 2 minutes
         if (elapsedMinutes > VIEWPORT_MINUTES) {
             chart.getXAxis().setAxisMinimum(elapsedMinutes - VIEWPORT_MINUTES);
             chart.getXAxis().setAxisMaximum(elapsedMinutes);
+
+            Log.w(TAG, String.format("Setting Axis: Minimum [%f], Maximum: [%f]", (elapsedMinutes - VIEWPORT_MINUTES), (elapsedMinutes)));
         }
+        Log.w(TAG, String.format("Axis: Minimum [%f], Maximum: [%f]", chart.getXAxis().getAxisMinimum(), chart.getXAxis().getAxisMaximum()));
 
         chart.notifyDataSetChanged();
         chart.invalidate();
